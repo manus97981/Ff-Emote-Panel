@@ -171,33 +171,6 @@ input:checked + .slider:before { transform: translateX(26px); }
   cursor:pointer;
   font-size:14px;
 }
-
-/* TikTok Popup */
-.tiktok-box{
-  background:#111;
-  border:2px solid #ff0050;
-  border-radius:16px;
-  padding:28px 20px;
-  max-width:300px;
-  width:88%;
-  text-align:center;
-}
-.tiktok-box .tt-icon{font-size:44px;margin-bottom:8px;}
-.tiktok-box h2{color:#ff0050;margin:0 0 6px;font-size:20px;}
-.tiktok-box p{color:#aaa;font-size:13px;margin:0 0 18px;}
-.tt-follow-btn{
-  display:block;width:100%;padding:12px;
-  background:#ff0050;color:white;
-  font-size:15px;font-weight:bold;
-  border:none;border-radius:10px;
-  cursor:pointer;text-decoration:none;
-  margin-bottom:10px;
-}
-.tt-skip-btn{
-  background:none;border:none;
-  color:#555;font-size:13px;cursor:pointer;
-  margin-top:4px;
-}
 </style>
 </head>
 
@@ -210,7 +183,6 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 <p style="font-size:12px;color:#aaa;">SAFE BUT STILL USE ON YOUR ON RISK</p>
 
-<!-- CHANGE 1: New WhatsApp link -->
 <button class="whatsapp-btn" onclick="window.open('https://chat.whatsapp.com/F8hWihi99bYF05isQysF94')">
 ID BUY AND SELL GROUP
 </button>
@@ -222,13 +194,6 @@ ID BUY AND SELL GROUP
 <button class="howtouse-btn" onclick="openHowToUse()">
 📖 How To Use
 </button>
-
-<div class="follow">
-Follow for more →
-<a href="https://www.tiktok.com/@prime_shani" target="_blank" style="color:#ff0050;">
-PRIME SHANI
-</a>
-</div>
 
 <input id="uid" placeholder="Enter UID">
 <input id="team" placeholder="Enter Team Code" maxlength="7" inputmode="numeric">
@@ -247,7 +212,7 @@ PRIME SHANI
 
 </div>
 
-<!-- Headshot Panel Popup -->
+<!-- Headshot Panel Popup (manual open) -->
 <div class="modal-overlay" id="headshotModal">
   <div class="modal-box">
     <iframe id="ytFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -272,24 +237,28 @@ PRIME SHANI
   </div>
 </div>
 
-<!-- CHANGE 2: TikTok Follow Popup (shows on every page open) -->
-<div class="modal-overlay active" id="tiktokModal">
-  <div class="tiktok-box">
-    <div class="tt-icon">🎵</div>
-    <h2>@prime_shani</h2>
-    <p>Follow on TikTok for more Free Fire content!</p>
-    <a href="https://www.tiktok.com/@prime_shani" target="_blank" class="tt-follow-btn" onclick="document.getElementById('tiktokModal').classList.remove('active')">
-      ➕ Follow Now
-    </a>
-    <button class="tt-skip-btn" onclick="document.getElementById('tiktokModal').classList.remove('active')">
-      Maybe Later
-    </button>
+<!-- Startup Popup: Headshot Panel (muted, autoplay) -->
+<div class="modal-overlay active" id="startupModal">
+  <div class="modal-box">
+    <iframe
+      id="startupFrame"
+      src="https://www.youtube.com/embed/p-dThBfhXEI?autoplay=1&mute=1"
+      allow="autoplay; encrypted-media"
+      allowfullscreen>
+    </iframe>
+    <div class="buy-text">
+      <span>03349039174</span><br>
+      Price = 500<br>
+      Msg To Buy On Whatsapp
+    </div>
+    <button class="modal-close" onclick="closeStartupModal()">Close ✕</button>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
+// --- Headshot Panel (manual) ---
 function openHeadshotPanel(){
   document.getElementById("ytFrame").src = "https://www.youtube.com/embed/p-dThBfhXEI?autoplay=1";
   document.getElementById("headshotModal").classList.add("active");
@@ -302,6 +271,7 @@ document.getElementById("headshotModal").addEventListener("click", function(e){
   if(e.target === this) closeHeadshotPanel();
 });
 
+// --- How To Use ---
 function openHowToUse(){
   document.getElementById("howToUseFrame").src = "https://www.youtube.com/embed/FkdxnfP8hL4?autoplay=1";
   document.getElementById("howToUseModal").classList.add("active");
@@ -314,98 +284,104 @@ document.getElementById("howToUseModal").addEventListener("click", function(e){
   if(e.target === this) closeHowToUse();
 });
 
-document.getElementById("tiktokModal").addEventListener("click", function(e){
-  if(e.target === this) this.classList.remove("active");
+// --- Startup Popup (muted headshot panel) ---
+function closeStartupModal(){
+  document.getElementById("startupFrame").src = "";
+  document.getElementById("startupModal").classList.remove("active");
+}
+document.getElementById("startupModal").addEventListener("click", function(e){
+  if(e.target === this) closeStartupModal();
 });
 
+// --- Core logic ---
 let lastSendTime = {};
 
 document.getElementById("team").addEventListener("input", function(){
-  this.value = this.value.replace(/\D/g, "").slice(0,7)
-})
+  this.value = this.value.replace(/\D/g, "").slice(0,7);
+});
 
 function showToast(msg){
-  let t=document.getElementById("toast")
-  t.innerText=msg
-  t.classList.add("show")
-  setTimeout(()=>{t.classList.remove("show")},2000)
+  let t = document.getElementById("toast");
+  t.innerText = msg;
+  t.classList.add("show");
+  setTimeout(() => { t.classList.remove("show"); }, 2000);
 }
 
-let allData=[]
-let box=document.getElementById("buttons")
-let limit=20
+let allData = [];
+let box = document.getElementById("buttons");
+let limit = 20;
 
-loadData()
+loadData();
 
 function loadData(){
   fetch("/static/final_links.json")
-  .then(res=>res.json())
-  .then(data=>{
-    allData = data.slice(0, limit)
-    render()
-  })
+  .then(res => res.json())
+  .then(data => {
+    allData = data.slice(0, limit);
+    render();
+  });
 }
 
 function render(){
-  box.innerHTML=""
+  box.innerHTML = "";
   for(let item of allData){
-    createCard(item.name,item.id,item.image)
+    createCard(item.name, item.id, item.image);
   }
 }
 
-function createCard(name,id,imgUrl){
-  let card=document.createElement("div")
-  card.className="card"
-  let img=document.createElement("img")
-  img.src="https://via.placeholder.com/100x60?text=..."
-  img.loading="lazy"
-  let realImg=new Image()
-  realImg.src=imgUrl
-  realImg.onload=()=>{img.src=realImg.src; img.classList.add("loaded")}
-  let nameDiv=document.createElement("div")
-  nameDiv.innerText=name
-  let btn=document.createElement("button")
-  btn.innerText="Send"
-  btn.onclick=()=>{sendEmote(id,btn)}
-  card.appendChild(img)
-  card.appendChild(nameDiv)
-  card.appendChild(btn)
-  box.appendChild(card)
+function createCard(name, id, imgUrl){
+  let card = document.createElement("div");
+  card.className = "card";
+  let img = document.createElement("img");
+  img.src = "https://via.placeholder.com/100x60?text=...";
+  img.loading = "lazy";
+  let realImg = new Image();
+  realImg.src = imgUrl;
+  realImg.onload = () => { img.src = realImg.src; img.classList.add("loaded"); };
+  let nameDiv = document.createElement("div");
+  nameDiv.innerText = name;
+  let btn = document.createElement("button");
+  btn.innerText = "Send";
+  btn.onclick = () => { sendEmote(id, btn); };
+  card.appendChild(img);
+  card.appendChild(nameDiv);
+  card.appendChild(btn);
+  box.appendChild(card);
 }
 
-async function sendEmote(id,btn){
-  let uid=document.getElementById("uid").value
-  let team=document.getElementById("team").value
-  if(!uid||!team){showToast("Enter UID & Team Code");return;}
-  let now=Date.now()/1000
-  if(lastSendTime[uid]&&(now-lastSendTime[uid])<1){
-    let wait=(1-(now-lastSendTime[uid])).toFixed(1)
-    showToast(`Please wait ${wait} seconds before sending again ⏱️`)
-    return
+async function sendEmote(id, btn){
+  let uid = document.getElementById("uid").value;
+  let team = document.getElementById("team").value;
+  if(!uid || !team){ showToast("Enter UID & Team Code"); return; }
+  let now = Date.now() / 1000;
+  if(lastSendTime[uid] && (now - lastSendTime[uid]) < 1){
+    let wait = (1 - (now - lastSendTime[uid])).toFixed(1);
+    showToast(`Please wait ${wait} seconds before sending again ⏱️`);
+    return;
   }
-  lastSendTime[uid]=now
-  let original=btn.innerText
-  btn.innerHTML='<div class="spinner"></div>'
-  btn.disabled=true
-  let noBot=document.getElementById("noBot").checked
+  lastSendTime[uid] = now;
+  let original = btn.innerText;
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+  let noBot = document.getElementById("noBot").checked;
   try{
-    let r=await fetch("/send",{
-      method:"POST",
-      headers:{"Content-Type":"application/x-www-form-urlencoded"},
-      body:`uid=${uid}&team=${team}&emote=${id}&no_bot=${noBot}`
-    })
-    let d=await r.json()
-    if(d.status==="success"){btn.innerText="✔ Sent";btn.classList.add("success");showToast("Success ✅");}
-    else if(d.status==="blocked")showToast("You are Blocked ❌")
-    else if(d.status==="fail")showToast("Failed to send ❌")
-    else showToast("Error ❌")
-  }catch(e){showToast("Server Error ❌")}
-  setTimeout(()=>{btn.innerText=original;btn.disabled=false;btn.classList.remove("success");},1500)
+    let r = await fetch("/send", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: `uid=${uid}&team=${team}&emote=${id}&no_bot=${noBot}`
+    });
+    let d = await r.json();
+    if(d.status === "success"){ btn.innerText = "✔ Sent"; btn.classList.add("success"); showToast("Success ✅"); }
+    else if(d.status === "blocked") showToast("You are Blocked ❌");
+    else if(d.status === "fail") showToast("Failed to send ❌");
+    else showToast("Error ❌");
+  } catch(e){ showToast("Server Error ❌"); }
+  setTimeout(() => { btn.innerText = original; btn.disabled = false; btn.classList.remove("success"); }, 1500);
 }
 
 function loadMore(){
-  limit+=50
-  loadData()
+  limit += 50;
+  loadData();
 }
 </script>
 
